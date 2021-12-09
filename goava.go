@@ -16,7 +16,7 @@ func (c *Cache[KeyT, ValT]) Set(key KeyT, val ValT) {
 }
 
 func NewCache[KeyT, ValT comparable]() *Cache[KeyT, ValT] {
-	c:= &Cache[KeyT, ValT]{
+	c := &Cache[KeyT, ValT]{
 		cm: make(map[KeyT]ValT),
 	}
 
