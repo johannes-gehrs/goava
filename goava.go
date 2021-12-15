@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	item[ValT comparable] struct {
+	item[ValT any] struct {
 		expiresAt time.Time
 		val       ValT
 	}
@@ -17,6 +17,7 @@ type (
 		cm                map[KeyT]item[ValT]
 		itemsByExpiration *radix.Tree
 		mutex             *sync.Mutex
+		cleanupOnlyOnce   *sync.Once
 	}
 )
 
@@ -46,7 +47,7 @@ func (c *Cache[KeyT, ValT]) Set(key KeyT, val ValT, expiresAt time.Time) {
 	c.itemsByExpiration.Insert(expiresAt.UTC().Format(time.RFC3339Nano), key)
 }
 
-func NewCache[KeyT, ValT comparable](maxItems, maxEvictionsPerSecond int64) *Cache[KeyT, ValT] {
+func NewCache[KeyT comparable, ValT any](maxItems, maxEvictionsPerSecond int64) *Cache[KeyT, ValT] {
 	c := &Cache[KeyT, ValT]{
 		cm:                make(map[KeyT]item[ValT]),
 		mutex:             &sync.Mutex{},
