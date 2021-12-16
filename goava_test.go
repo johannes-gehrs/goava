@@ -42,24 +42,27 @@ func TestCacheEvictExpiredKey(t *testing.T) {
 
 	evicted := c.EvictExpiredKeys(context.TODO())
 
-	assert.EqualValues(t, 10 * 1000, evicted)
-	assert.Equal(t, 10 * 1000, c.itemsByExpiration.Len())
+	assert.EqualValues(t, 10*1000, evicted)
+	assert.Equal(t, 10*1000, c.itemsByExpiration.Len())
 }
 
 func TestCacheIdenticalExpirationTimes(t *testing.T) {
 	c := NewCache[string, int64]()
 
+	now := time.Now()
+
 	for i := 0; i < 10*1000; i++ {
-		c.Put(fmt.Sprintf("%016d", i), int64(i), time.Now().Add(time.Hour))
+		c.Put(fmt.Sprintf("%016d", i), int64(i), now.Add(time.Hour))
 	}
 
 	for i := 10 * 1000; i < 20*1000; i++ {
-		c.Put(fmt.Sprintf("%016d", i), int64(i), time.Now().Add(-time.Hour).Add)
+		c.Put(fmt.Sprintf("%016d", i), int64(i), now.Add(-time.Hour))
 	}
+
+	assert.Equal(t, 2, c.itemsByExpiration.Len())
 
 	evicted := c.EvictExpiredKeys(context.TODO())
 
-	assert.EqualValues(t, 1, evicted)
-	assert.Equal(t, 10 * 1000, c.itemsByExpiration.Len())
+	assert.EqualValues(t, 10000, evicted)
+	assert.Equal(t, 1, c.itemsByExpiration.Len())
 }
-

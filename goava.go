@@ -21,7 +21,6 @@ type (
 		mutex                              *sync.Mutex
 		onlyOneEvictionProcessAtAGivenTime *sync.Once
 	}
-
 )
 
 func isExpired(now, expiryTime time.Time) bool {
@@ -69,7 +68,7 @@ func (c *Cache[KeyT, ValT]) Put(key KeyT, val ValT, expiresAt time.Time) {
 		treeValues = make(map[KeyT]struct{})
 	}
 
-	treeValues.(map[KeyT]struct{})[key] = struct {}{}
+	treeValues.(map[KeyT]struct{})[key] = struct{}{}
 
 	c.itemsByExpiration.Insert(itm.expiryTimeAsString(), treeValues)
 }
@@ -103,7 +102,7 @@ func (c *Cache[KeyT, ValT]) Delete(key KeyT) bool {
 	return true
 }
 
-func (c *Cache[KeyT, ValT]) EvictExpiredKeys(ctx context.Context) (evictedCount int64) {
+func (c *Cache[KeyT, ValT]) EvictExpiredKeys(ctx context.Context) (evictedCount int) {
 	c.onlyOneEvictionProcessAtAGivenTime.Do(func() {
 		c.mutex.Lock()
 		toBeEvicted := make([]KeyT, 0)
@@ -119,8 +118,7 @@ func (c *Cache[KeyT, ValT]) EvictExpiredKeys(ctx context.Context) (evictedCount 
 					}
 					return false
 				}
-				// if the key isn't expired all the next ones also won't be expired as they are sorted by eviction time in the tree.
-				// So we can stop iteration.
+				// if the key isn't expired all the subsequent ones also won't be expired as they are sorted by eviction time in the tree.
 				return true
 			}
 		})
